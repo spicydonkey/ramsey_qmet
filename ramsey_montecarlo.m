@@ -10,12 +10,12 @@ p_up = @(phi) cos(phi/2).^2;        % probability to measure spin-UP
 y2phi = @(y) acos(y);
 
 phi_ramsey = linspace(0,2*pi,1e2);       % phase
-N_qubits = 30;         % number of qubits
-p_detect = 0.1;         % detection efficiency
+N_qubits = 5;         % number of qubits
+p_detect = 1;         % detection efficiency
 
 
 % Monte-carlo
-N_mc = 1e3;          % repetition
+N_mc = 1e4;          % repetition
 
 
 %% Main 
@@ -37,14 +37,10 @@ for ii=1:length(phi_ramsey)
 end
 
 %% plot
-H_mc = figure;
-
-% N_qubits = 64;         % number of qubits
-% p_detect = 0.1;         % detection efficiency
+H_mc = figure('Name','MCsim_ramsey','Units','centimeters','Position',[0,0,11,20]);
 
 %%%
 subplot(3,1,1);
-
 
 p_MC_y = ploterr(phi_ramsey,y_mc(:,1),[],y_mc(:,2),'o','hhxy',0);
 set(p_MC_y(1),'MarkerEdgeColor','k','MarkerFaceColor','w',...
@@ -54,7 +50,7 @@ set(p_MC_y(2),'Color','k','LineWidth',1);
 xlabel('true phase, $\phi$ (rad)');
 ylabel('polarisation');
 
-titlestr = sprintf('N qubits = %d; QE = %0.2g',N_qubits,p_detect);
+titlestr = sprintf('N qubits = %d; QE = %0.2g; samples = %0.1E',N_qubits,p_detect, N_mc);
 title(titlestr);
 
 %%%
