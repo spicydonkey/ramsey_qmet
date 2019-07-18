@@ -19,7 +19,7 @@ function [phi_est, y, N_spin_det, N_spin] = mc_ramsey(N,qe,phi,n_mc)
 
 % Ramsey
 p_up = @(x) cos(x/2).^2;        % probability to measure spin |+>
-y2phi = @(y) acos(y);
+y2phi_est = @(y) acos(y);       % phase estimate function
 
 
 % simulate spin projection 
@@ -32,6 +32,6 @@ N_spin_det = binornd(N_spin,qe);
 
 % evaluate measurement result
 y = -diff(N_spin_det,1,2)./sum(N_spin_det,2);
-phi_est = y2phi(y);
+phi_est = y2phi_est(y);
 
 end
