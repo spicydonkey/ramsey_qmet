@@ -10,22 +10,24 @@ tic;
 %%% Ramsey 
 % measurement scheme
 p_up = @(phi) cos(phi/2).^2;        % probability to measure spin-UP
-% y2phi_est = @(y) acos(y);
+y2phi_est = @(y) acos(y);           % nonlinear phase estimator
 phi2ymean = @(phi) cos(phi);        % mean y predicted from phi (TODO: this is a GUESS)
 dEydphi = @(phi) -sin(phi);         % average y vs. phi
 
 % parameters
-phi_ramsey = linspace(0,2*pi,1e2);       % phase
+phi_ramsey = linspace(0,2*pi,1e3);       % phase
+
 % N_qubits = 1e3;         % number of qubits
 % p_detect = 0.1;         % detection efficiency
+% n_avg = N_qubits*p_detect;
 
-n_avg = 6.4;        % fixed
-p_detect = 0.1;
+n_avg = 10;                 % fixed avg number
+p_detect = 1e-1;
 N_qubits = round(n_avg/p_detect);
 
 
 %%% Monte-carlo
-N_mc = 1e3;          % repetition
+N_mc = 1e4;          % repetition
 
 
 %% Main 
@@ -210,6 +212,68 @@ legend([p_phiest,p_phipred,p_detlim,p_sql,p_hl],'Location','eastoutside');
 
 titlestr = sprintf('N(qubits) = %d; QE = %0.2g; samples = %0.1E',N_qubits,p_detect, N_mc);
 mtit(titlestr);
+
+
+%% Non-linear estimator
+% NOTE: assuming no fluctuation in atom number (const at avg)
+xx = linspace(0,pi,1e2);        % phi in [0,pi]
+nn_up = 0:n_avg;     % principal index to label outcomes
+yy = 2/n_avg * nn_up - 1;
+pp = acos(yy);
+
+P_nn_up = NaN(length(xx),n_avg+1);
+for ii=1:n_avg+1
+    P_nn_up(:,ii) = binopdf(nn_up(ii),n_avg,cos(xx/2).^2);
+end
+
+%%% VIS
+idx_plot = round(linspace(1,round(length(xx)/2),4));
+xx_plot = xx(idx_plot);
+xx_plot_str = arrayfun(@(x) num2str(x,3),xx_plot,'uni',0);
+
+% plot
+H = figure('Name','nlin_est','Unit','centimeters','Position',[0,0,12, 15]);
+colormap('parula');
+
+cmark = 'r';        % marker color for bar-plot x-value indicator
+
+% P(y)
+subplot(3,1,1);
+bar(yy',P_nn_up(idx_plot,:)','hist');
+xlabel('$y$');
+ylabel('probability');
+axis tight;
+
+hold on;
+plot(yy,0,'*','Color',cmark);
+
+lgd = legend(xx_plot_str,'Location','west');
+lgd.Title.String = '$\phi$';
+
+% y vs phi_est
+subplot(3,1,2);
+hold on;
+yy_fine = linspace(1,-1,1e2);
+pp_fine = acos(yy_fine);
+
+plot(yy_fine,pp_fine/pi,'k-');
+plot(yy,pp/pi,'*','Color',cmark);
+
+xlabel('$y$');
+ylabel('$\phi_\textrm{est}/\pi$');
+box on;
+
+% P(phi_est)
+subplot(3,1,3);
+bar(pp'/pi,P_nn_up(idx_plot,:)','hist');
+xlabel('$\phi_\textrm{est}/\pi$');
+ylabel('probability');
+axis tight;
+
+% update x-axis marker
+ax=gca;
+ax.Children(1).Color = cmark;
+
 
 %% end
 toc;
